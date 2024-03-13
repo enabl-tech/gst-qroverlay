@@ -50,6 +50,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "gstqroverlay.h"
 
@@ -375,6 +376,8 @@ gchar	*parse_data_array(Gstqroverlay *filter, gchar	*value_in_array)
 gchar *build_string(GstBaseTransform * base, GstBuffer * outbuf, gchar *encode_string)
 {
 	gchar	*timestamp;
+  gchar	*base_time_str;
+  gchar *system_time_str;
 	gchar	*value;
 	gchar	*buffer_count;
 	gchar	*framerate;
@@ -399,6 +402,37 @@ gchar *build_string(GstBaseTransform * base, GstBuffer * outbuf, gchar *encode_s
 	encode_string = strcat(encode_string, timestamp);
 	g_free(value);
 	g_free(timestamp);
+  // /* Convert base time to string */ 
+  // if (!(base_time_str = malloc(30 * sizeof(char*))))
+  //   GST_ERROR_OBJECT(filter, "can't alloc memory to base time");
+  // if (!(value = malloc(20 * sizeof(char*))))
+  //   GST_ERROR_OBJECT(filter, "can't alloc memory to base time value");
+  // GstClockTime base_time;  
+  // base_time = gst_element_get_base_time(GST_ELEMENT(base)); 
+  // sprintf(value, "%llu", (long long unsigned int) base_time);
+  // strcpy(base_time_str, "\"base_time\":");
+  // base_time_str = strcat(base_time_str, value);
+  // base_time_str = strcat(base_time_str, ",");
+  // encode_string = strcat(encode_string, base_time_str);
+  // g_free(value);
+  // g_free(base_time_str);
+  /* Convert system time to string */ 
+  if (!(system_time_str = malloc(30 * sizeof(char*))))
+    GST_ERROR_OBJECT(filter, "can't alloc memory to system time");
+  if (!(value = malloc(20 * sizeof(char*))))
+    GST_ERROR_OBJECT(filter, "can't alloc memory to system time value");
+  struct timeval time;
+  if(gettimeofday(&time, NULL) != 0) {
+      GST_ERROR_OBJECT(filter, "Failed to get time");
+  }
+  long cur_time = 1000000 * time.tv_sec + time.tv_usec;
+  sprintf(value, "%ld", cur_time);
+  strcpy(system_time_str, "\"system_time_micro\":");
+  system_time_str = strcat(system_time_str, value);
+  system_time_str = strcat(system_time_str, ",");
+  encode_string = strcat(encode_string, system_time_str);
+  g_free(value);
+  g_free(system_time_str);
 	/* Convert frame number to string */
 	if (!(buffer_count = malloc(23 * sizeof(char*))))
 		GST_ERROR_OBJECT(filter, "can't alloc memory to buffer count");
